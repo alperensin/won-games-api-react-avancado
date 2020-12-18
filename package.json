@@ -13,8 +13,10 @@
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^24.0.0",
     "@ckeditor/ckeditor5-react": "^3.0.0",
+    "jsdom": "^16.4.0",
     "knex": "<0.20.0",
     "pg": "latest",
+    "slugify": "^1.4.6",
     "strapi": "3.3.4",
     "strapi-admin": "3.3.4",
     "strapi-connector-bookshelf": "3.3.4",
