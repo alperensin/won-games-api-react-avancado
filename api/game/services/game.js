@@ -3,6 +3,10 @@
 const axios = require('axios');
 const slugify = require('slugify');
 
+function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function getGameInfo(slug) {
 
   const jsdom = require('jsdom');
@@ -102,6 +106,13 @@ async function createGames(products) {
 
         });
 
+        await setImage({ image: product.image, game });
+        await Promise.all(
+          product.gallery.slice(0, 5).map(url => setImage({ image: url, game, field: 'gallery' }))
+        );
+
+        await timeout(2000);
+
         return game;
 
       }
@@ -109,6 +120,32 @@ async function createGames(products) {
     })
 
   );
+
+}
+
+async function setImage({ image, game, field = 'cover'}) {
+  const url = `https:${image}_bg_crop_1680x655.jpg`;
+  const { data } = await axios.get(url, { responseType: 'arraybuffer' });
+  const buffer = Buffer.from(data, 'base64');
+
+  const FormData = require('form-data');
+  const formData = new FormData();
+
+  formData.append('refId', game.id);
+  formData.append('ref', 'game');
+  formData.append('field', field);
+  formData.append('files', buffer, { filename: `${game.slug}.jpg` });
+
+  console.info(`Uploading ${field} image: ${game.slug}.jpg`);
+
+  await axios({
+    method: 'POST',
+    url: `http://${strapi.config.host}:${strapi.config.port}/upload`,
+    data: formData,
+    headers: {
+      "Content-Type": `multipart/form-data; boundary=${formData._boundary}`
+    },
+  });
 
 }
 
@@ -120,7 +157,7 @@ module.exports = {
     const { data: { products } } = await axios.get(gogApiUrl);
     
     await createManyToManyData([products[3], products[4]]);
-    await createGames([products[3], products[4]]);
+    await createGames([products[1], products[2]]);
 
   }
 };
